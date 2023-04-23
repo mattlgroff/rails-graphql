@@ -693,7 +693,15 @@ class ApplicationController < ActionController::Base
     controller_name == 'graphql'
   end
 end
+```
 
+### For serving assets in Production w/ Docker deploy
+In `config/environments/production.rb`, update the following line to the `config.public_file_server.enabled` section:
+
+```ruby
+  # Disable serving static files from the `/public` folder by default since
+  # Apache or NGINX already handles this.
+  config.public_file_server.enabled = true
 ```
 
 
