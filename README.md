@@ -762,6 +762,14 @@ config.require_master_key = true
 config.secret_key_base = ENV["SECRET_KEY_BASE"]
 ```
 
+In your terminal create a secret with `rails secret`
+  
+```bash
+rails secret
+```
+
+Copy the secret and put it on the Environmental Variables of whatever Cloud you are deploying to.
+
 ### Resources
 
 [using-graphql-with-ruby-on-rails](https://www.apollographql.com/blog/community/backend/using-graphql-with-ruby-on-rails/)
