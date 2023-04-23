@@ -755,19 +755,19 @@ docker run -p 3000:3000 \
   rails-graphql
 ```
 
-We need to add a `secret_key_base` for the production environment in order to deploy. Edit the `config/environments/production.rb` file and add the following line:
-
-```ruby
-config.secret_key_base = ENV["SECRET_KEY_BASE"]
-```
-
-In your terminal create a secret with `rails secret`
+In your terminal create a secret with `rails secret`. Copy the secret.
   
 ```bash
 rails secret
 ```
 
-Copy the secret and put it on the Environmental Variables of whatever Cloud you are deploying to.
+We need to add a `secret_key_base` for the production environment in order to deploy. Edit the `config/environments/production.rb` file and add the following line:
+
+```ruby
+config.secret_key_base = <your copied secret here>
+```
+
+NOTE: If we were using any encrypted data this would be a bad security practice for obvious reasons. We can and should use an ENV variable for this in production deployments.
 
 ### Resources
 
