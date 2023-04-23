@@ -758,7 +758,6 @@ docker run -p 3000:3000 \
 We need to add a `secret_key_base` for the production environment in order to deploy. Edit the `config/environments/production.rb` file and add the following line:
 
 ```ruby
-config.require_master_key = true
 config.secret_key_base = ENV["SECRET_KEY_BASE"]
 ```
 
