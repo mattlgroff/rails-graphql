@@ -14,7 +14,7 @@ module Types
     # Add a field to the PersonType that returns a full name
     field :full_name, String, null: false
     def full_name 
-      [object.first_name, object.last_name].compact.join("")
+      [object.first_name, object.last_name].compact.join(" ")
     end 
 
     # Add a field to the PersonType that returns a list of comments

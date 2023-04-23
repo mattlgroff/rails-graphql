@@ -243,6 +243,18 @@ rails generate graphql:install
 bundle install
 ```
 
+Note: If you want GraphiQL in Production, go into your Gemfile and change the line for the graphiql-rails gem from this:
+
+```ruby
+gem "graphiql-rails", group: :development
+```
+
+to this:
+
+```ruby
+gem "graphiql-rails"
+```
+
 A Rails generator is used for automating the process of creating files with boilerplate code. It creates and updates files based on templates, etc. 
 
 Let’s poke around in the files and see what we got! Check out the schema file, `rails_graphql_schema.rb`. This is where it declares where all the queries should go and set up mutations. 
@@ -269,7 +281,7 @@ Rails.application.routes.draw do
 end
 ```
 
-This is giving us a GraphiQL interface on get requests but only in development. We can change this to be available in production if we want. Which in this case, we do want this.
+This is giving us a GraphiQL interface on get requests but only in development. We can change this to be available in production if we want. Which in this case, I do want this.
 
 ```ruby
 Rails.application.routes.draw do
@@ -365,7 +377,7 @@ module Types
     # Add a field to the PersonType that returns a full name
     field :full_name, String, null: false
     def full_name 
-      [object.first_name, object.last_name].compact.join("")
+      [object.first_name, object.last_name].compact.join(" ")
     end 
   end
 end
@@ -668,6 +680,83 @@ mutation {
 }
 ```
 
+### Disable CORS/Cross-Site Request Forgery
+To disable CSRF protection for your GraphQL endpoint, you can modify your `app/controllers/application_controller.rb` file as follows:
+
+```ruby
+class ApplicationController < ActionController::Base
+  protect_from_forgery with: :exception, unless: :graphql_controller?
+
+  private
+
+  def graphql_controller?
+    controller_name == 'graphql'
+  end
+end
+
+```
+
+
+### Dockerize and Deploy
+
+I wanted to dockerize and deploy this app. I followed this [tutorial](https://www.koyeb.com/tutorials/dockerize-deploy-and-run-a-ruby-on-rails-app) to do so.
+
+Create a `Dockerfile` in the root directory of the project. 
+
+```dockerfile
+FROM ruby:3.2.2-alpine
+WORKDIR /app
+COPY . .
+RUN apk add --no-cache build-base tzdata nodejs postgresql-dev
+RUN gem install bundler
+RUN bundle install
+ENV RAILS_ENV=production
+RUN bundle exec rails assets:precompile
+EXPOSE 3000
+CMD ["rails", "server", "-b", "0.0.0.0"]
+```
+
+Build the docker image to make sure it works.
+
+```bash
+docker build -t rails-graphql .
+```
+
+If successful, you should see something like this:
+
+```bash
+[+] Building 37.2s (13/13) FINISHED                                                                            
+ => [internal] load build definition from Dockerfile                                                      0.0s
+ => => transferring dockerfile: 32B                                                                       0.0s
+ => [internal] load .dockerignore                                                                         0.0s
+ => => transferring context: 2B                                                                           0.0s
+ => [internal] load metadata for docker.io/library/ruby:3.2.2-alpine                                      1.1s
+ => [auth] library/ruby:pull token for registry-1.docker.io                                               0.0s
+ => [internal] load build context                                                                         0.1s
+ => => transferring context: 209.06kB                                                                     0.1s
+ => [1/7] FROM docker.io/library/ruby:3.2.2-alpine@sha256:697038d90aa973dfa8bb3613f3d57d58b38bdf7957b83a  0.0s
+ => CACHED [2/7] WORKDIR /app                                                                             0.0s
+ => [3/7] COPY . .                                                                                        0.3s
+ => [4/7] RUN apk add --no-cache build-base tzdata nodejs postgresql-dev                                 11.5s
+ => [5/7] RUN gem install bundler                                                                         1.7s
+ => [6/7] RUN bundle install                                                                             18.1s 
+ => [7/7] RUN bundle exec rails assets:precompile                                                         2.5s 
+ => exporting to image                                                                                    1.9s 
+ => => exporting layers                                                                                   1.9s 
+ => => writing image sha256:7d437c9e05b4cc85f17d7f23acd11f03af3a3f98bd38306f15b4f62ad5d3a02f              0.0s 
+ => => naming to docker.io/library/rails-graphql           
+ ```
+
+Run the docker image to make sure it works.
+  
+```bash
+docker run -p 3000:3000 \
+  -e DATABASE_URL="postgres://postgres:mysecretpassword@localhost:5432/rails_graphql_development" \
+  rails-graphql
+```
+
 ### Resources
 
 [using-graphql-with-ruby-on-rails](https://www.apollographql.com/blog/community/backend/using-graphql-with-ruby-on-rails/)
+
+[dockerize-deploy-and-run-a-ruby-on-rails-app](https://www.koyeb.com/tutorials/dockerize-deploy-and-run-a-ruby-on-rails-app)
